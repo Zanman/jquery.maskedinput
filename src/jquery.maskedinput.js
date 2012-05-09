@@ -13,7 +13,10 @@
 		definitions: {
 			'9': "[0-9]",
 			'a': "[A-Za-z]",
-			'*': "[A-Za-z0-9]"
+			'*': "[A-Za-z0-9]",
+			'2': "[0-2]",
+			'5': "[0-5]",
+			'h': "[012-3456789]" //is INTENTION!
 		},
 		dataName:"rawMaskFn"
 	};
@@ -55,7 +58,8 @@
 			}
 			settings = $.extend({
 				placeholder: "_",
-				completed: null
+				completed: null,
+				checkHour:false
 			}, settings);
 
 			var defs = $.mask.definitions;
@@ -161,6 +165,17 @@
 						if (p < len) {
 							var c = String.fromCharCode(k);
 							if (tests[p].test(c)) {
+								
+								/*modified 17.04.12 */
+								if(settings.checkHour){
+									var reg_hour2 = String(/[012-3456789]/);
+									if(String(tests[p]) == String(reg_hour2) ) {
+										if(buffer[seekPrev(p)] == '2' && (c > 3))
+											return false;
+									}
+								}
+								/*end modified*/
+								
 								shiftR(p);
 								buffer[p] = c;
 								writeBuffer();
@@ -181,13 +196,14 @@
 					}
 				};
 
+				//writes Buffer into input field and returns buffer string
 				function writeBuffer() { return input.val(buffer.join('')).val(); };
 
 				function checkVal(allow) {
 					//try to place characters where they belong
 					var test = input.val();
 					var lastMatch = -1;
-					for (var i = 0, pos = 0; i < len; i++) {
+					for (var i = 0, pos = 0; i < len; i++) { //len = mask.length
 						if (tests[i]) {
 							buffer[i] = settings.placeholder;
 							while (pos++ < test.length) {
